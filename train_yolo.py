@@ -1,0 +1,124 @@
+import os
+import sys
+from ultralytics import YOLO
+from pathlib import Path
+import wandb
+import argparse
+
+
+def main(args):
+    """
+    Train a YOLO model using Ultralytics on the converted dataset
+    """
+    # Set up WandB logging if enabled
+    if args.use_wandb:
+        wandb.init(
+            project="action-detection-yolo",
+            config={
+                "model": args.model,
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "image_size": args.img_size,
+                "dataset": "Custom Action Dataset"
+            }
+        )
+
+    # Path to the dataset configuration
+    dataset_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "yolo_dataset",
+        "dataset.yaml"
+    )
+
+    # Check if dataset exists
+    if not os.path.exists(dataset_path):
+        print(f"Dataset configuration not found at: {dataset_path}")
+        print("Please run convert_to_yolo.py first to prepare the dataset.")
+        sys.exit(1)
+
+    print(f"Loading base model: {args.model}")
+    model = YOLO(args.model)
+
+    # Train the model
+    print(f"Starting training for {args.epochs} epochs...")
+    results = model.train(
+        data=dataset_path,
+        epochs=args.epochs,
+        batch=args.batch_size,
+        imgsz=args.img_size,
+        patience=args.patience,
+        device=args.device,
+        project=args.project_name,
+        name=args.run_name,
+        save=True,
+        save_period=args.save_period,
+        optimizer=args.optimizer,
+        lr0=args.learning_rate,
+        lrf=args.final_learning_rate,
+        momentum=args.momentum,
+        weight_decay=args.weight_decay,
+        warmup_epochs=args.warmup_epochs,
+        warmup_momentum=args.warmup_momentum,
+        warmup_bias_lr=args.warmup_bias_lr,
+        pretrained=True,
+        verbose=args.verbose
+    )
+
+    # Evaluate the model on the validation set
+    print("Evaluating model on validation set...")
+    val_results = model.val(data=dataset_path)
+
+    print("\nTraining complete!")
+    print(f"Model saved to: {os.path.join(args.project_name, args.run_name)}")
+
+    # Close WandB run if enabled
+    if args.use_wandb:
+        wandb.finish()
+
+    return results, val_results
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Train YOLOv8 on action detection dataset")
+    parser.add_argument('--model', type=str, default='yolov8n.pt',
+                        help='Model to use (yolov8n.pt, yolov8s.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt)')
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='Number of epochs to train for')
+    parser.add_argument('--batch-size', type=int, default=16,
+                        help='Training batch size')
+    parser.add_argument('--img-size', type=int, default=640,
+                        help='Image size for training')
+    parser.add_argument('--patience', type=int, default=10,
+                        help='Early stopping patience')
+    parser.add_argument('--device', type=str, default='',
+                        help='Device to use (empty string for auto, or cuda:0, cpu)')
+    parser.add_argument('--project-name', type=str, default='yolo_runs',
+                        help='Project name for saving outputs')
+    parser.add_argument('--run-name', type=str, default='run1',
+                        help='Run name for this training session')
+    parser.add_argument('--save-period', type=int, default=10,
+                        help='Save checkpoint every X epochs')
+    parser.add_argument('--optimizer', type=str, default='auto',
+                        help='Optimizer: SGD, Adam, AdamW, RMSProp, auto')
+    parser.add_argument('--learning-rate', type=float, default=0.01,
+                        help='Initial learning rate')
+    parser.add_argument('--final-learning-rate', type=float, default=0.001,
+                        help='Final learning rate')
+    parser.add_argument('--momentum', type=float, default=0.937,
+                        help='Optimizer momentum')
+    parser.add_argument('--weight-decay', type=float, default=0.0005,
+                        help='Optimizer weight decay')
+    parser.add_argument('--warmup-epochs', type=int, default=3,
+                        help='Warmup epochs')
+    parser.add_argument('--warmup-momentum', type=float, default=0.8,
+                        help='Warmup momentum')
+    parser.add_argument('--warmup-bias-lr', type=float, default=0.1,
+                        help='Warmup bias learning rate')
+    parser.add_argument('--use-wandb', action='store_true',
+                        help='Use Weights & Biases for logging')
+    parser.add_argument('--verbose', action='store_true',
+                        help='Verbose output')
+
+    args = parser.parse_args()
+    main(args)

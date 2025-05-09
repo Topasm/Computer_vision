@@ -2,3 +2,6 @@ CV_Train/
 CV_Test/
 checkpoints/
 wandb/
+yolo_dataset/
+yolo_runs/
+*.pt
