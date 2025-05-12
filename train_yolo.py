@@ -19,7 +19,18 @@ def main(args):
                 "epochs": args.epochs,
                 "batch_size": args.batch_size,
                 "image_size": args.img_size,
-                "dataset": "Custom Action Dataset"
+                "dataset": "Custom Action Dataset",
+                # Augmentation parameters
+                "degrees": args.degrees,
+                "translate": args.translate,
+                "scale": args.scale,
+                "shear": args.shear,
+                "perspective": args.perspective,
+                "flipud": args.flipud,
+                "fliplr": args.fliplr,
+                "mosaic": args.mosaic,
+                "mixup": args.mixup,
+                "copy_paste": args.copy_paste
             }
         )
 
@@ -55,7 +66,20 @@ def main(args):
             "save": True,
             "save_period": args.save_period,
             "pretrained": True,
-            "verbose": args.verbose
+            "verbose": args.verbose,
+            "val": False,  # Disable validation during training
+
+            # Data augmentation parameters
+            "degrees": args.degrees,           # Rotation degrees
+            "translate": args.translate,       # Translation
+            "scale": args.scale,               # Scale
+            "shear": args.shear,               # Shear
+            "perspective": args.perspective,   # Perspective
+            "flipud": args.flipud,             # Flip up-down
+            "fliplr": args.fliplr,             # Flip left-right
+            "mosaic": args.mosaic,             # Mosaic augmentation
+            "mixup": args.mixup,               # Mixup augmentation
+            "copy_paste": args.copy_paste      # Copy-paste augmentation
         }
 
         # Optional arguments based on Ultralytics version compatibility
@@ -81,10 +105,7 @@ def main(args):
         print(f"Error during training: {str(e)}")
         raise
 
-    # Evaluate the model on the validation set
-    print("Evaluating model on validation set...")
-    val_results = model.val(data=dataset_path)
-
+    # Skip validation after training
     print("\nTraining complete!")
     print(f"Model saved to: {os.path.join(args.project_name, args.run_name)}")
 
@@ -92,7 +113,7 @@ def main(args):
     if args.use_wandb:
         wandb.finish()
 
-    return results, val_results
+    return results, None
 
 
 if __name__ == "__main__":
@@ -136,6 +157,28 @@ if __name__ == "__main__":
                         help='Use Weights & Biases for logging')
     parser.add_argument('--verbose', action='store_true',
                         help='Verbose output')
+
+    # Data augmentation parameters
+    parser.add_argument('--degrees', type=float, default=10.0,
+                        help='Rotation augmentation degrees (±)')
+    parser.add_argument('--translate', type=float, default=0.1,
+                        help='Translation augmentation fraction (±)')
+    parser.add_argument('--scale', type=float, default=0.5,
+                        help='Scale augmentation fraction (±)')
+    parser.add_argument('--shear', type=float, default=0.0,
+                        help='Shear augmentation degrees (±)')
+    parser.add_argument('--perspective', type=float, default=0.0,
+                        help='Perspective augmentation distortion')
+    parser.add_argument('--flipud', type=float, default=0.0,
+                        help='Flip up-down augmentation probability')
+    parser.add_argument('--fliplr', type=float, default=0.5,
+                        help='Flip left-right augmentation probability')
+    parser.add_argument('--mosaic', type=float, default=1.0,
+                        help='Mosaic augmentation probability')
+    parser.add_argument('--mixup', type=float, default=0.1,
+                        help='Mixup augmentation probability')
+    parser.add_argument('--copy-paste', type=float, default=0.1,
+                        help='Copy-paste augmentation probability')
 
     args = parser.parse_args()
     main(args)
