@@ -119,7 +119,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Train YOLOv8 on action detection dataset")
-    parser.add_argument('--model', type=str, default='yolov8n.pt',
+    parser.add_argument('--model', type=str, default='yolo11m.pt',
                         help='Model to use (yolov8n.pt, yolov8s.pt, yolov8m.pt, yolov8l.pt, yolov8x.pt)')
     parser.add_argument('--epochs', type=int, default=100,
                         help='Number of epochs to train for')
