@@ -41,28 +41,45 @@ def main(args):
 
     # Train the model
     print(f"Starting training for {args.epochs} epochs...")
-    results = model.train(
-        data=dataset_path,
-        epochs=args.epochs,
-        batch=args.batch_size,
-        imgsz=args.img_size,
-        patience=args.patience,
-        device=args.device,
-        project=args.project_name,
-        name=args.run_name,
-        save=True,
-        save_period=args.save_period,
-        optimizer=args.optimizer,
-        lr0=args.learning_rate,
-        lrf=args.final_learning_rate,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay,
-        warmup_epochs=args.warmup_epochs,
-        warmup_momentum=args.warmup_momentum,
-        warmup_bias_lr=args.warmup_bias_lr,
-        pretrained=True,
-        verbose=args.verbose
-    )
+    try:
+        # Configure training arguments
+        train_args = {
+            "data": dataset_path,
+            "epochs": args.epochs,
+            "batch": args.batch_size,
+            "imgsz": args.img_size,
+            "patience": args.patience,
+            "device": args.device,
+            "project": args.project_name,
+            "name": args.run_name,
+            "save": True,
+            "save_period": args.save_period,
+            "pretrained": True,
+            "verbose": args.verbose
+        }
+
+        # Optional arguments based on Ultralytics version compatibility
+        try:
+            # First attempt with newer parameters
+            results = model.train(
+                **train_args,
+                optimizer=args.optimizer,
+                lr0=args.learning_rate,
+                lrf=args.final_learning_rate,
+                momentum=args.momentum,
+                weight_decay=args.weight_decay,
+                warmup_epochs=args.warmup_epochs,
+                warmup_momentum=args.warmup_momentum,
+                warmup_bias_lr=args.warmup_bias_lr
+            )
+        except TypeError as e:
+            # Fallback to simpler parameter set if there's a compatibility issue
+            print(
+                f"Warning: Incompatible training parameters, using simplified configuration: {str(e)}")
+            results = model.train(**train_args)
+    except Exception as e:
+        print(f"Error during training: {str(e)}")
+        raise
 
     # Evaluate the model on the validation set
     print("Evaluating model on validation set...")
