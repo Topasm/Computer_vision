@@ -6,3 +6,4 @@ yolo_dataset/
 yolo_runs/
 *.pt
 test_outputs/
+nohup.out

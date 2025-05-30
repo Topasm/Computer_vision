@@ -90,7 +90,7 @@ def convert_to_yolo_format(json_path, image_width, image_height):
     return "\n".join(yolo_annotations)
 
 
-def process_dataset(source_img_dir, source_label_dir, yolo_base_dir, val_split=0.0):
+def process_dataset(source_img_dir, source_label_dir, yolo_base_dir, val_split=0.2):
     """
     Process dataset and convert to YOLO format.
 
@@ -98,15 +98,19 @@ def process_dataset(source_img_dir, source_label_dir, yolo_base_dir, val_split=0
         source_img_dir (str): Directory containing images
         source_label_dir (str): Directory containing JSON labels
         yolo_base_dir (str): Base directory for YOLO dataset
-        val_split (float): Validation set ratio (0.0 to 1.0), defaults to 0 to use all data for training
+        val_split (float): Validation set ratio (0.0 to 1.0)
     """
     # Get all image files
     image_files = sorted([f for f in os.listdir(source_img_dir)
                           if f.lower().endswith((".jpg", ".jpeg", ".png"))])
 
-    # Use all images for training (no validation split)
-    train_files = image_files
-    val_files = []  # Empty validation set
+    # Shuffle and split data
+    random.seed(42)  # For reproducibility
+    random.shuffle(image_files)
+
+    split_idx = int(len(image_files) * (1 - val_split))
+    train_files = image_files[:split_idx]
+    val_files = image_files[split_idx:]
 
     print(f"Total images: {len(image_files)}")
     print(f"Training images: {len(train_files)}")
@@ -197,9 +201,9 @@ def main():
     # Check if CV_Train and CV_Test exist
     if os.path.exists(cv_train_img_dir) and os.path.exists(cv_train_label_dir):
         print("Processing training dataset...")
-        # Use all training dataset for training (no validation split)
+        # Use training dataset for both train and validation (with a split)
         process_dataset(cv_train_img_dir, cv_train_label_dir,
-                        yolo_dir, val_split=0.0)
+                        yolo_dir, val_split=0.2)
     else:
         print(
             f"Training directories not found: {cv_train_img_dir}, {cv_train_label_dir}")
