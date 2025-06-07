@@ -21,7 +21,7 @@ This project implements action detection (standing, sitting, lying, throwing) us
 
 4. Evaluate the trained model:
    ```
-   python evaluate_yolo.py --model yolo_runs/run1/weights/best.pt
+   python generate_json_labels.py
    ```
 
 ## Automated Pipeline
