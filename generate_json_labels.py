@@ -139,7 +139,7 @@ def generate_labels(model_path, image_dir, output_dir, confidence_threshold=0.25
 def main():
     parser = argparse.ArgumentParser(
         description="Generate JSON label files from YOLO predictions")
-    parser.add_argument("--model", type=str, default="yolo_runs/run18/weights/best.pt",
+    parser.add_argument("--model", type=str, default="yolo_runs/run18/weights/best.pt",  # 여기 경로 바꿔서 테스트 하면 됩니다.
                         help="Path to YOLO model")
     parser.add_argument("--image-dir", type=str, default="CV_Test/Images",
                         help="Directory containing images")
